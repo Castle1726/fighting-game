@@ -10,15 +10,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.awt.Image;
 
 
 
 public class Fighter {
     private boolean flip;
-    private Rectangle rect;
+    //   Changed to protected for subclass (AIFighter) access in AI logic
+    protected Rectangle rect;
     private int velY;
-    private boolean jumping;
+    //   Changed to protected for subclass (AIFighter) access in AI logic
+    protected boolean jumping;
     private boolean attacking;
     private int attackType;
     private int health;
@@ -65,22 +68,15 @@ public class Fighter {
 
     // Load sprite + flipped version
     private void loadSprite() {
-        try {
-            File f;
-            if (this.spritePath != null) {
-                f = new File(this.spritePath);
-            } else {
-                f = new File("assets/images/characters/player1.png");
-            }
-            sprite = ImageIO.read(f);
-            if (sprite != null) {
-                spriteFlipped = flipImage(sprite);
-                System.out.println("Loaded sprite: " + f.getPath());
-            } else {
-                System.out.println("Failed to load sprite (null): " + f.getPath());
-            }
-        } catch (IOException e) {
-            System.out.println("Couldn't load sprite: " + e.getMessage());
+        // Use Assets helper that tries classpath first (works in JAR and IDE)
+        String path = this.spritePath != null ? this.spritePath : "assets/images/characters/player1.png";
+        java.awt.image.BufferedImage img = Assets.loadImage(path);
+        if (img != null) {
+            sprite = img;
+            spriteFlipped = flipImage(sprite);
+            System.out.println("Loaded sprite: " + path);
+        } else {
+            System.out.println("Failed to load sprite: " + path);
         }
     }
 
@@ -297,5 +293,15 @@ public class Fighter {
     // allow external access if you want to set health / reset etc.
     public void setHealth(int health) {
         this.health = health;
+    }
+
+    //   Added public getter for rect (required for AI centerX calculations)
+    public Rectangle getRect() {
+        return rect;
+    }
+
+    //   Added public getter for jumping state (required for AI jump decisions)
+    public boolean isJumping() {
+        return jumping;
     }
 }
